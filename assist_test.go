@@ -1,10 +1,10 @@
 package assistdog
 
 import (
-	"strings"
 	"testing"
 
 	"github.com/DATA-DOG/godog/gherkin"
+	"github.com/stretchr/testify/assert"
 )
 
 type person struct {
@@ -26,13 +26,8 @@ func TestCreateInstance(t *testing.T) {
 		}
 
 		typed := result.(*person)
-		if typed.Name != "John" {
-			t.Error("expected Name to be John, but was", typed.Name)
-		}
-
-		if typed.Height != 182 {
-			t.Error("expected Height to be 182, but was", typed.Height)
-		}
+		assert.Equal(t, "John", typed.Name)
+		assert.Equal(t, 182, typed.Height)
 	})
 
 	t.Run("with extra field", func(t *testing.T) {
@@ -43,15 +38,12 @@ func TestCreateInstance(t *testing.T) {
 		})
 
 		_, err := NewDefault().CreateInstance(new(person), table)
-		if err == nil {
-			t.Error("expected an error, but got none")
+		if !assert.Error(t, err) {
 			return
 		}
 
-		expectedMessage := `Age: field not found`
-		if !strings.Contains(err.Error(), expectedMessage) {
-			t.Errorf(`expected error message to contain "%v", but was "%v"`, expectedMessage, err.Error())
-		}
+		assert.Equal(t, `failed to parse table as *assistdog.person:
+- Age: field not found`, err.Error())
 	})
 
 	t.Run("with invalid integer", func(t *testing.T) {
@@ -61,15 +53,12 @@ func TestCreateInstance(t *testing.T) {
 		})
 
 		_, err := NewDefault().CreateInstance(new(person), table)
-		if err == nil {
-			t.Error("expected an error, but got none")
+		if !assert.Error(t, err) {
 			return
 		}
 
-		expectedMessage := `parsing "nono": invalid syntax`
-		if !strings.Contains(err.Error(), expectedMessage) {
-			t.Errorf(`expected error message to contain "%v", but was "%v"`, expectedMessage, err.Error())
-		}
+		assert.Equal(t, `failed to parse table as *assistdog.person:
+- Height: strconv.Atoi: parsing "nono": invalid syntax`, err.Error())
 	})
 }
 
@@ -82,32 +71,20 @@ func TestCreateSlice(t *testing.T) {
 		})
 
 		result, err := NewDefault().CreateSlice(new(person), table)
-		if err != nil {
-			t.Error(err)
+		if !assert.NoError(t, err) {
 			return
 		}
 
 		typed := result.([]*person)
-		if len(typed) != 2 {
-			t.Error("expected result to have two elements")
+		if !assert.Len(t, typed, 2) {
 			return
 		}
 
-		if typed[0].Name != "John" {
-			t.Error("expected Name to be John, but was", typed[0].Name)
-		}
+		assert.Equal(t, "John", typed[0].Name)
+		assert.Equal(t, 182, typed[0].Height)
 
-		if typed[0].Height != 182 {
-			t.Error("expected Height to be 182, but was", typed[0].Height)
-		}
-
-		if typed[1].Name != "Mary" {
-			t.Error("expected Name to be Mary, but was", typed[1].Name)
-		}
-
-		if typed[1].Height != 170 {
-			t.Error("expected Height to be 170, but was", typed[1].Height)
-		}
+		assert.Equal(t, "Mary", typed[1].Name)
+		assert.Equal(t, 170, typed[1].Height)
 	})
 
 	t.Run("with invalid integer", func(t *testing.T) {
@@ -117,15 +94,13 @@ func TestCreateSlice(t *testing.T) {
 		})
 
 		_, err := NewDefault().CreateSlice(new(person), table)
-		if err == nil {
-			t.Error("expected an error, but got none")
+		if !assert.Error(t, err) {
 			return
 		}
 
-		expectedMessage := `parsing "nono": invalid syntax`
-		if !strings.Contains(err.Error(), expectedMessage) {
-			t.Errorf(`expected error message to contain "%v", but was "%v"`, expectedMessage, err.Error())
-		}
+		assert.Equal(t, `failed to parse table as slice of *assistdog.person:
+row 0:
+  - Height: strconv.Atoi: parsing "nono": invalid syntax`, err.Error())
 	})
 }
 
@@ -142,9 +117,7 @@ func TestCompareInstance(t *testing.T) {
 		}
 
 		err := NewDefault().CompareToInstance(actual, table)
-		if err != nil {
-			t.Error(err)
-		}
+		assert.NoError(t, err)
 	})
 
 	t.Run("with different value for int", func(t *testing.T) {
@@ -159,15 +132,12 @@ func TestCompareInstance(t *testing.T) {
 		}
 
 		err := NewDefault().CompareToInstance(actual, table)
-		if err == nil {
-			t.Error("expected an error, but got none")
+		if !assert.Error(t, err) {
 			return
 		}
 
-		expectedMessage := `Height: expected 900, but got 182`
-		if !strings.Contains(err.Error(), expectedMessage) {
-			t.Errorf(`expected error message to contain "%v", but was "%v"`, expectedMessage, err.Error())
-		}
+		assert.Equal(t, `comparison failed:
+- Height: expected 900, but got 182`, err.Error())
 	})
 
 	t.Run("with different value for string", func(t *testing.T) {
@@ -182,15 +152,12 @@ func TestCompareInstance(t *testing.T) {
 		}
 
 		err := NewDefault().CompareToInstance(actual, table)
-		if err == nil {
-			t.Error("expected an error, but got none")
+		if !assert.Error(t, err) {
 			return
 		}
 
-		expectedMessage := `Name: expected Mary, but got John`
-		if !strings.Contains(err.Error(), expectedMessage) {
-			t.Errorf(`expected error message to contain "%v", but was "%v"`, expectedMessage, err.Error())
-		}
+		assert.Equal(t, `comparison failed:
+- Name: expected Mary, but got John`, err.Error())
 	})
 }
 
@@ -208,9 +175,7 @@ func TestCompareSlice(t *testing.T) {
 		}
 
 		err := NewDefault().CompareToSlice(actual, table)
-		if err != nil {
-			t.Error(err)
-		}
+		assert.NoError(t, err)
 	})
 
 	t.Run("with different value for int", func(t *testing.T) {
@@ -226,15 +191,13 @@ func TestCompareSlice(t *testing.T) {
 		}
 
 		err := NewDefault().CompareToSlice(actual, table)
-		if err == nil {
-			t.Error("expected an error, but got none")
+		if !assert.Error(t, err) {
 			return
 		}
 
-		expectedMessage := `Height: expected 1234, but got 170`
-		if !strings.Contains(err.Error(), expectedMessage) {
-			t.Errorf(`expected error message to contain "%v", but was "%v"`, expectedMessage, err.Error())
-		}
+		assert.Equal(t, `comparison failed:
+row 1:
+  - Height: expected 1234, but got 170`, err.Error())
 	})
 
 	t.Run("passing something other than a slice", func(t *testing.T) {
@@ -247,15 +210,11 @@ func TestCompareSlice(t *testing.T) {
 		actual := &person{}
 
 		err := NewDefault().CompareToSlice(actual, table)
-		if err == nil {
-			t.Error("expected an error, but got none")
+		if !assert.Error(t, err) {
 			return
 		}
 
-		expectedMessage := `actual value is not a slice`
-		if !strings.Contains(err.Error(), expectedMessage) {
-			t.Errorf(`expected error message to contain "%v", but was "%v"`, expectedMessage, err.Error())
-		}
+		assert.Equal(t, `actual value is not a slice`, err.Error())
 	})
 }
 
