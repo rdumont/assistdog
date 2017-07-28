@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/DATA-DOG/godog/gherkin"
-	"github.com/rdumont/assistdog/defaults"
+	"github.com/hellomd/assistdog/defaults"
 )
 
 var defaultParsers = map[interface{}]ParseFunc{
