@@ -1,7 +1,10 @@
 package assistdog
 
 import (
+	"reflect"
 	"testing"
+
+	"github.com/hellomd/assistdog/defaults"
 
 	"github.com/DATA-DOG/godog/gherkin"
 	"github.com/stretchr/testify/assert"
@@ -10,6 +13,24 @@ import (
 type person struct {
 	Name   string
 	Height int
+}
+
+func TestRemoveParser(t *testing.T) {
+	assist := &Assist{parsers: map[reflect.Type]ParseFunc{}}
+	assist.parsers[reflect.TypeOf("")] = defaults.ParseString
+
+	assist.RemoveParser("")
+
+	assert.Len(t, assist.parsers, 0)
+}
+
+func TestRemoveComparer(t *testing.T) {
+	assist := &Assist{comparers: map[reflect.Type]CompareFunc{}}
+	assist.comparers[reflect.TypeOf("")] = defaults.CompareString
+
+	assist.RemoveComparer("")
+
+	assert.Len(t, assist.comparers, 0)
 }
 
 func TestCreateInstance(t *testing.T) {
