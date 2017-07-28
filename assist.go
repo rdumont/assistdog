@@ -127,46 +127,37 @@ func (a *Assist) CreateInstance(tp interface{}, table *gherkin.DataTable) (inter
 		return nil, err
 	}
 
-	fieldErrors := []string{}
-
-	instance := reflect.ValueOf(tp)
-	sv := instance.Elem()
-	for fieldName, rawValue := range tableMap {
-		fv := sv.FieldByName(fieldName)
-		if !fv.IsValid() {
-			fieldErrors = append(fieldErrors, fmt.Sprintf("%v: field not found", fieldName))
-			continue
-		}
-
-		if !fv.CanSet() {
-			fieldErrors = append(fieldErrors, fmt.Sprintf("%v: cannot set value", fieldName))
-			continue
-		}
-
-		parseField, ok := a.findParser(fv.Type())
-		if !ok {
-			fieldErrors = append(fieldErrors, fmt.Sprintf("%v: unrecognized type %v", fieldName, fv.Type()))
-			continue
-		}
-
-		parsed, err := parseField(rawValue)
-		if err != nil {
-			fieldErrors = append(fieldErrors, fmt.Sprintf("%v: %v", fieldName, err.Error()))
-			continue
-		}
-
-		fv.Set(reflect.ValueOf(parsed))
-	}
-
-	if len(fieldErrors) != 0 {
-		return nil, fmt.Errorf("failed to parse table as %v:\n- %v", sv.Type(), strings.Join(fieldErrors, "\n- "))
+	instance, errs := a.createInstance(tp, tableMap)
+	if len(errs) != 0 {
+		return nil, fmt.Errorf("failed to parse table as %v:\n- %v", reflect.TypeOf(tp), strings.Join(errs, "\n- "))
 	}
 
 	return instance.Interface(), nil
 }
 
 func (a *Assist) CreateSlice(tp interface{}, table *gherkin.DataTable) (interface{}, error) {
-	return nil, fmt.Errorf("not implemented")
+	maps, err := a.ParseSlice(table)
+	if err != nil {
+		return nil, err
+	}
+
+	errs := []string{}
+	slice := reflect.MakeSlice(reflect.SliceOf(reflect.TypeOf(tp)), 0, len(maps))
+	for i, row := range maps {
+		instance, fieldErrors := a.createInstance(tp, row)
+		if len(fieldErrors) > 0 {
+			errs = append(errs, fmt.Sprintf("row %v:\n  - %v", i, strings.Join(fieldErrors, "\n  - ")))
+			continue
+		}
+
+		slice = reflect.Append(slice, instance)
+	}
+
+	if len(errs) > 0 {
+		return nil, fmt.Errorf("failed to parse table as slice of %v:\n%v", reflect.TypeOf(tp), strings.Join(errs, "\n"))
+	}
+
+	return slice.Interface(), nil
 }
 
 func (a *Assist) CompareToInstance(actual interface{}, table *gherkin.DataTable) error {
@@ -175,35 +166,96 @@ func (a *Assist) CompareToInstance(actual interface{}, table *gherkin.DataTable)
 		return err
 	}
 
-	fieldErrors := []string{}
-	sv := reflect.ValueOf(actual).Elem()
-	for fieldName, rawExpectedValue := range tableMap {
-		fv := sv.FieldByName(fieldName)
-		if !fv.IsValid() {
-			fieldErrors = append(fieldErrors, fmt.Sprintf("%v: field not found", fieldName))
-			continue
-		}
-
-		compare, ok := a.findComparer(fv.Type())
-		if !ok {
-			fieldErrors = append(fieldErrors, fmt.Sprintf("%v: unrecognized type %v", fieldName, fv.Type()))
-			continue
-		}
-
-		if err := compare(rawExpectedValue, fv.Interface()); err != nil {
-			fieldErrors = append(fieldErrors, fmt.Sprintf("%v: %v", fieldName, err))
-		}
-	}
-
-	if len(fieldErrors) != 0 {
-		return fmt.Errorf("comparison failed:\n- %v", strings.Join(fieldErrors, "\n- "))
+	errs := a.compareToInstance(actual, tableMap)
+	if len(errs) != 0 {
+		return fmt.Errorf("comparison failed:\n- %v", strings.Join(errs, "\n- "))
 	}
 
 	return nil
 }
 
 func (a *Assist) CompareToSlice(actual interface{}, table *gherkin.DataTable) error {
-	return fmt.Errorf("not implemented")
+	maps, err := a.ParseSlice(table)
+	if err != nil {
+		return err
+	}
+
+	actualValue := reflect.ValueOf(actual)
+	if actualValue.Kind() != reflect.Slice {
+		return fmt.Errorf("actual value is not a slice")
+	}
+
+	errs := []string{}
+	for i, row := range maps {
+		rowErrs := a.compareToInstance(actualValue.Index(i).Interface(), row)
+		if len(rowErrs) > 0 {
+			errs = append(errs, fmt.Sprintf("row %v:\n  - %v", i, strings.Join(rowErrs, "\n  - ")))
+		}
+	}
+
+	if len(errs) > 0 {
+		return fmt.Errorf("comparison failed:\n%v", strings.Join(errs, "\n"))
+	}
+
+	return nil
+}
+
+func (a *Assist) createInstance(tp interface{}, table map[string]string) (reflect.Value, []string) {
+	errs := []string{}
+	result := reflect.New(reflect.TypeOf(tp).Elem())
+	sv := result.Elem()
+	for fieldName, rawValue := range table {
+		fv := sv.FieldByName(fieldName)
+		if !fv.IsValid() {
+			errs = append(errs, fmt.Sprintf("%v: field not found", fieldName))
+			continue
+		}
+
+		if !fv.CanSet() {
+			errs = append(errs, fmt.Sprintf("%v: cannot set value", fieldName))
+			continue
+		}
+
+		parseField, ok := a.findParser(fv.Type())
+		if !ok {
+			errs = append(errs, fmt.Sprintf("%v: unrecognized type %v", fieldName, fv.Type()))
+			continue
+		}
+
+		parsed, err := parseField(rawValue)
+		if err != nil {
+			errs = append(errs, fmt.Sprintf("%v: %v", fieldName, err.Error()))
+			continue
+		}
+
+		fv.Set(reflect.ValueOf(parsed))
+	}
+
+	return result, errs
+}
+
+func (a *Assist) compareToInstance(actual interface{}, table map[string]string) []string {
+	errs := []string{}
+	sv := reflect.ValueOf(actual).Elem()
+	for fieldName, rawExpectedValue := range table {
+		fv := sv.FieldByName(fieldName)
+		if !fv.IsValid() {
+			errs = append(errs, fmt.Sprintf("%v: field not found", fieldName))
+			continue
+		}
+
+		compare, ok := a.findComparer(fv.Type())
+		if !ok {
+			errs = append(errs, fmt.Sprintf("%v: unrecognized type %v", fieldName, fv.Type()))
+			continue
+		}
+
+		if err := compare(rawExpectedValue, fv.Interface()); err != nil {
+			errs = append(errs, fmt.Sprintf("%v: %v", fieldName, err))
+		}
+	}
+
+	return errs
 }
 
 func (a *Assist) findParser(tp reflect.Type) (ParseFunc, bool) {
