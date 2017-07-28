@@ -33,7 +33,7 @@ type ParseFunc func(raw string) (interface{}, error)
 // describes the differences should be returned.
 type CompareFunc func(raw string, actual interface{}) error
 
-// NewDefault creates a new Assist instance with all the default parsers and comparers
+// NewDefault creates a new Assist instance with all the default parsers and comparers.
 func NewDefault() *Assist {
 	a := new(Assist)
 	for tp, p := range defaultParsers {
@@ -47,12 +47,15 @@ func NewDefault() *Assist {
 	return a
 }
 
+// Assist provides utility methods to deal with Gherkin tables.
 type Assist struct {
 	lock      sync.RWMutex
 	parsers   map[reflect.Type]ParseFunc
 	comparers map[reflect.Type]CompareFunc
 }
 
+// RegisterParser registers a new value parser for a type.
+// If a previous parser already exists for the given type, it will be replaced.
 func (a *Assist) RegisterParser(i interface{}, parser ParseFunc) {
 	a.lock.Lock()
 	defer a.lock.Unlock()
@@ -60,6 +63,8 @@ func (a *Assist) RegisterParser(i interface{}, parser ParseFunc) {
 	a.parsers[reflect.TypeOf(i)] = parser
 }
 
+// RegisterComparer registers a new value comparer for a type.
+// If a previous comparer already exists for the given type, it will be replaced.
 func (a *Assist) RegisterComparer(i interface{}, comparer CompareFunc) {
 	a.lock.Lock()
 	defer a.lock.Unlock()
@@ -67,6 +72,7 @@ func (a *Assist) RegisterComparer(i interface{}, comparer CompareFunc) {
 	a.comparers[reflect.TypeOf(i)] = comparer
 }
 
+// RemoveParser removes the value parser for a type.
 func (a *Assist) RemoveParser(i interface{}) {
 	a.lock.Lock()
 	defer a.lock.Unlock()
@@ -74,6 +80,7 @@ func (a *Assist) RemoveParser(i interface{}) {
 	delete(a.parsers, reflect.TypeOf(i))
 }
 
+// RemoveComparer removes the value comparer for a type.
 func (a *Assist) RemoveComparer(i interface{}) {
 	a.lock.Lock()
 	defer a.lock.Unlock()
@@ -81,6 +88,9 @@ func (a *Assist) RemoveComparer(i interface{}) {
 	delete(a.comparers, reflect.TypeOf(i))
 }
 
+// ParseMap takes a Gherkin table and returns a map that represents it.
+// The table must have exactly two columns, where the first represents
+// the key and the second represents the value.
 func (a *Assist) ParseMap(table *gherkin.DataTable) (map[string]string, error) {
 	if len(table.Rows) == 0 {
 		return nil, fmt.Errorf("expected table to have at least one row")
@@ -98,6 +108,8 @@ func (a *Assist) ParseMap(table *gherkin.DataTable) (map[string]string, error) {
 	return result, nil
 }
 
+// ParseSlice takes a Gherkin table and returns a slice of maps representing each row.
+// The first row acts as a header and provides the keys.
 func (a *Assist) ParseSlice(table *gherkin.DataTable) ([]map[string]string, error) {
 	if len(table.Rows) < 2 {
 		return nil, fmt.Errorf("expected table to have at least two rows")
@@ -121,6 +133,10 @@ func (a *Assist) ParseSlice(table *gherkin.DataTable) ([]map[string]string, erro
 	return result, nil
 }
 
+// CreateInstance takes a type and a Gherkin table and returns an instance of
+// that type filled with the table's parsed values.
+// The table must have exactly two columns, where the first represents the field names
+// and the second represents the values.
 func (a *Assist) CreateInstance(tp interface{}, table *gherkin.DataTable) (interface{}, error) {
 	tableMap, err := a.ParseMap(table)
 	if err != nil {
@@ -135,6 +151,9 @@ func (a *Assist) CreateInstance(tp interface{}, table *gherkin.DataTable) (inter
 	return instance.Interface(), nil
 }
 
+// CreateSlice takes a type and a Gherkin table and returns a slice of that type
+// filled with each row as an instance.
+// The first row acts as a header and provides the field names for each column.
 func (a *Assist) CreateSlice(tp interface{}, table *gherkin.DataTable) (interface{}, error) {
 	maps, err := a.ParseSlice(table)
 	if err != nil {
@@ -160,6 +179,7 @@ func (a *Assist) CreateSlice(tp interface{}, table *gherkin.DataTable) (interfac
 	return slice.Interface(), nil
 }
 
+// CompareToInstance compares an actual value to the expected fields from a Gherkin table.
 func (a *Assist) CompareToInstance(actual interface{}, table *gherkin.DataTable) error {
 	tableMap, err := a.ParseMap(table)
 	if err != nil {
@@ -174,6 +194,7 @@ func (a *Assist) CompareToInstance(actual interface{}, table *gherkin.DataTable)
 	return nil
 }
 
+// CompareToSlice compares an actual slice of values to the expected rows from a Gherkin table.
 func (a *Assist) CompareToSlice(actual interface{}, table *gherkin.DataTable) error {
 	maps, err := a.ParseSlice(table)
 	if err != nil {
