@@ -4,7 +4,7 @@ import (
 	"reflect"
 
 	"github.com/DATA-DOG/godog/gherkin"
-	"github.com/hellomd/assistdog"
+	"github.com/rdumont/assistdog"
 )
 
 func ExampleAssist_CreateInstance() {
