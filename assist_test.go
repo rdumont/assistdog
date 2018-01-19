@@ -3,6 +3,7 @@ package assistdog
 import (
 	"reflect"
 	"testing"
+	"time"
 
 	"github.com/rdumont/assistdog/defaults"
 
@@ -11,8 +12,17 @@ import (
 )
 
 type person struct {
-	Name   string
-	Height int
+	Name      string
+	Height    int
+	Weight    float32
+	CreatedAt time.Time
+}
+
+type nillablePerson struct {
+	Name      *string
+	Height    *int
+	Weight    *float32
+	CreatedAt *time.Time
 }
 
 func TestRemoveParser(t *testing.T) {
@@ -38,6 +48,8 @@ func TestCreateInstance(t *testing.T) {
 		table := buildTable([][]string{
 			{"Name", "John"},
 			{"Height", "182"},
+			{"Weight", "85.56"},
+			{"CreatedAt", "2018-01-19T10:41:00Z"},
 		})
 
 		result, err := NewDefault().CreateInstance(new(person), table)
@@ -49,6 +61,31 @@ func TestCreateInstance(t *testing.T) {
 		typed := result.(*person)
 		assert.Equal(t, "John", typed.Name)
 		assert.Equal(t, 182, typed.Height)
+		assert.Equal(t, float32(85.56), typed.Weight)
+		parsedTime, err := time.Parse(time.RFC3339, "2018-01-19T10:41:00Z")
+		assert.Nil(t, err)
+		assert.Equal(t, parsedTime, typed.CreatedAt)
+	})
+
+	t.Run("successfully for nillable attributes", func(t *testing.T) {
+		table := buildTable([][]string{
+			{"Name", "N/A"},
+			{"Height", "N/A"},
+			{"Weight", "N/A"},
+			{"CreatedAt", "N/A"},
+		})
+
+		result, err := NewDefault().CreateInstance(new(nillablePerson), table)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+
+		typed := result.(*nillablePerson)
+		assert.Nil(t, typed.Name)
+		assert.Nil(t, typed.Height)
+		assert.Nil(t, typed.Weight)
+		assert.Nil(t, typed.CreatedAt)
 	})
 
 	t.Run("with extra field", func(t *testing.T) {

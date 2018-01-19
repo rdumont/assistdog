@@ -8,19 +8,29 @@ import (
 	"time"
 
 	"github.com/DATA-DOG/godog/gherkin"
-	"github.com/rdumont/assistdog/defaults"
+	"github.com/cashcowpro/assistdog/defaults"
 )
 
 var defaultParsers = map[interface{}]ParseFunc{
-	"":          defaults.ParseString,
-	0:           defaults.ParseInt,
-	time.Time{}: defaults.ParseTime,
+	"":                  defaults.ParseString,
+	0:                   defaults.ParseInt,
+	float32(0.0):        defaults.ParseFloat32,
+	time.Time{}:         defaults.ParseTime,
+	defaults.NilString:  defaults.ParseStringPointer,
+	defaults.NilInt:     defaults.ParseIntPointer,
+	defaults.NilFloat32: defaults.ParseFloat32Pointer,
+	defaults.NilTime:    defaults.ParseTimePointer,
 }
 
 var defaultComparers = map[interface{}]CompareFunc{
-	"":          defaults.CompareString,
-	0:           defaults.CompareInt,
-	time.Time{}: defaults.CompareTime,
+	"":                  defaults.CompareString,
+	0:                   defaults.CompareInt,
+	float32(0.0):        defaults.CompareFloat32,
+	time.Time{}:         defaults.CompareTime,
+	defaults.NilString:  defaults.CompareStringPointer,
+	defaults.NilInt:     defaults.CompareIntPointer,
+	defaults.NilFloat32: defaults.CompareFloat32Pointer,
+	defaults.NilTime:    defaults.CompareTimePointer,
 }
 
 // ParseFunc parses a raw string value from a table into a given type.
