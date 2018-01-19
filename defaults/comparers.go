@@ -70,7 +70,7 @@ func CompareTime(raw string, actual interface{}) error {
 		return err
 	}
 
-	if et != at {
+	if !at.Equal(et.(time.Time)) {
 		return fmt.Errorf("expected %v, but got %v", et, at)
 	}
 
