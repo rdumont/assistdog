@@ -194,6 +194,21 @@ func (a *Assist) CompareToInstance(actual interface{}, table *gherkin.DataTable)
 	return nil
 }
 
+// CompareToMap compares an actual map value to the expected fields from a Gherkin table.
+func (a *Assist) CompareToMap(actual map[string]interface{}, table *gherkin.DataTable) error {
+	tableMap, err := a.ParseMap(table)
+	if err != nil {
+		return err
+	}
+
+	errs := a.compareToMap(actual, tableMap)
+	if len(errs) != 0 {
+		return fmt.Errorf("comparison failed:\n- %v", strings.Join(errs, "\n- "))
+	}
+
+	return nil
+}
+
 // CompareToSlice compares an actual slice of values to the expected rows from a Gherkin table.
 func (a *Assist) CompareToSlice(actual interface{}, table *gherkin.DataTable) error {
 	maps, err := a.ParseSlice(table)
@@ -272,6 +287,30 @@ func (a *Assist) compareToInstance(actual interface{}, table map[string]string) 
 		}
 
 		if err := compare(rawExpectedValue, fv.Interface()); err != nil {
+			errs = append(errs, fmt.Sprintf("%v: %v", fieldName, err))
+		}
+	}
+
+	return errs
+}
+
+func (a *Assist) compareToMap(actual map[string]interface{}, table map[string]string) []string {
+	errs := []string{}
+	for fieldName, rawExpectedValue := range table {
+		actualValue, ok := actual[fieldName]
+		if !ok {
+			errs = append(errs, fmt.Sprintf("%v: map does not contain key", fieldName))
+			continue
+		}
+
+		typ := reflect.TypeOf(actualValue)
+		compare, ok := a.findComparer(typ)
+		if !ok {
+			errs = append(errs, fmt.Sprintf("%v: unrecognized type %v", fieldName, typ))
+			continue
+		}
+
+		if err := compare(rawExpectedValue, actualValue); err != nil {
 			errs = append(errs, fmt.Sprintf("%v: %v", fieldName, err))
 		}
 	}

@@ -182,6 +182,62 @@ func TestCompareInstance(t *testing.T) {
 	})
 }
 
+func TestCompareMap(t *testing.T) {
+	t.Run("successfully", func(t *testing.T) {
+		table := buildTable([][]string{
+			{"Name", "John"},
+			{"Height", "182"},
+		})
+
+		actual := map[string]interface{}{
+			"Name":   "John",
+			"Height": 182,
+		}
+
+		err := NewDefault().CompareToMap(actual, table)
+		assert.NoError(t, err)
+	})
+
+	t.Run("with different value for int", func(t *testing.T) {
+		table := buildTable([][]string{
+			{"Name", "John"},
+			{"Height", "900"},
+		})
+
+		actual := map[string]interface{}{
+			"Name":   "John",
+			"Height": 182,
+		}
+
+		err := NewDefault().CompareToMap(actual, table)
+		if !assert.Error(t, err) {
+			return
+		}
+
+		assert.Equal(t, `comparison failed:
+- Height: expected 900, but got 182`, err.Error())
+	})
+
+	t.Run("with different value for string", func(t *testing.T) {
+		table := buildTable([][]string{
+			{"Name", "Mary"},
+			{"Height", "182"},
+		})
+
+		actual := map[string]interface{}{
+			"Name":   "John",
+			"Height": 182,
+		}
+
+		err := NewDefault().CompareToMap(actual, table)
+		if !assert.Error(t, err) {
+			return
+		}
+
+		assert.Equal(t, `comparison failed:
+- Name: expected Mary, but got John`, err.Error())
+	})
+}
 func TestCompareSlice(t *testing.T) {
 	t.Run("successfully", func(t *testing.T) {
 		table := buildTable([][]string{
