@@ -3,7 +3,7 @@ package assistdog_test
 import (
 	"reflect"
 
-	"github.com/DATA-DOG/godog/gherkin"
+	"github.com/cucumber/godog/gherkin"
 	"github.com/rdumont/assistdog"
 )
 

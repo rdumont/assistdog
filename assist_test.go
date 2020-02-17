@@ -6,7 +6,7 @@ import (
 
 	"github.com/rdumont/assistdog/defaults"
 
-	"github.com/DATA-DOG/godog/gherkin"
+	"github.com/cucumber/godog/gherkin"
 	"github.com/stretchr/testify/assert"
 )
 
