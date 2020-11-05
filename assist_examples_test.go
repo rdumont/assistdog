@@ -3,7 +3,9 @@ package assistdog_test
 import (
 	"reflect"
 
-	"github.com/cucumber/godog/gherkin"
+	"github.com/cucumber/godog"
+	"github.com/cucumber/messages-go/v10"
+
 	"github.com/rdumont/assistdog"
 )
 
@@ -86,16 +88,16 @@ type Person struct {
 	Height int
 }
 
-func NewTable(src [][]string) *gherkin.DataTable {
-	rows := make([]*gherkin.TableRow, len(src))
+func NewTable(src [][]string) *godog.Table {
+	rows := make([]*messages.PickleStepArgument_PickleTable_PickleTableRow, len(src))
 	for i, row := range src {
-		cells := make([]*gherkin.TableCell, len(row))
+		cells := make([]*messages.PickleStepArgument_PickleTable_PickleTableRow_PickleTableCell, len(row))
 		for j, value := range row {
-			cells[j] = &gherkin.TableCell{Value: value}
+			cells[j] = &messages.PickleStepArgument_PickleTable_PickleTableRow_PickleTableCell{Value: value}
 		}
 
-		rows[i] = &gherkin.TableRow{Cells: cells}
+		rows[i] = &messages.PickleStepArgument_PickleTable_PickleTableRow{Cells: cells}
 	}
 
-	return &gherkin.DataTable{Rows: rows}
+	return &godog.Table{Rows: rows}
 }

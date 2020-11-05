@@ -7,7 +7,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/cucumber/godog/gherkin"
+	"github.com/cucumber/godog"
+
 	"github.com/rdumont/assistdog/defaults"
 )
 
@@ -91,7 +92,7 @@ func (a *Assist) RemoveComparer(i interface{}) {
 // ParseMap takes a Gherkin table and returns a map that represents it.
 // The table must have exactly two columns, where the first represents
 // the key and the second represents the value.
-func (a *Assist) ParseMap(table *gherkin.DataTable) (map[string]string, error) {
+func (a *Assist) ParseMap(table *godog.Table) (map[string]string, error) {
 	if len(table.Rows) == 0 {
 		return nil, fmt.Errorf("expected table to have at least one row")
 	}
@@ -110,7 +111,7 @@ func (a *Assist) ParseMap(table *gherkin.DataTable) (map[string]string, error) {
 
 // ParseSlice takes a Gherkin table and returns a slice of maps representing each row.
 // The first row acts as a header and provides the keys.
-func (a *Assist) ParseSlice(table *gherkin.DataTable) ([]map[string]string, error) {
+func (a *Assist) ParseSlice(table *godog.Table) ([]map[string]string, error) {
 	if len(table.Rows) < 2 {
 		return nil, fmt.Errorf("expected table to have at least two rows")
 	}
@@ -137,7 +138,7 @@ func (a *Assist) ParseSlice(table *gherkin.DataTable) ([]map[string]string, erro
 // that type filled with the table's parsed values.
 // The table must have exactly two columns, where the first represents the field names
 // and the second represents the values.
-func (a *Assist) CreateInstance(tp interface{}, table *gherkin.DataTable) (interface{}, error) {
+func (a *Assist) CreateInstance(tp interface{}, table *godog.Table) (interface{}, error) {
 	tableMap, err := a.ParseMap(table)
 	if err != nil {
 		return nil, err
@@ -154,7 +155,7 @@ func (a *Assist) CreateInstance(tp interface{}, table *gherkin.DataTable) (inter
 // CreateSlice takes a type and a Gherkin table and returns a slice of that type
 // filled with each row as an instance.
 // The first row acts as a header and provides the field names for each column.
-func (a *Assist) CreateSlice(tp interface{}, table *gherkin.DataTable) (interface{}, error) {
+func (a *Assist) CreateSlice(tp interface{}, table *godog.Table) (interface{}, error) {
 	maps, err := a.ParseSlice(table)
 	if err != nil {
 		return nil, err
@@ -180,7 +181,7 @@ func (a *Assist) CreateSlice(tp interface{}, table *gherkin.DataTable) (interfac
 }
 
 // CompareToInstance compares an actual value to the expected fields from a Gherkin table.
-func (a *Assist) CompareToInstance(actual interface{}, table *gherkin.DataTable) error {
+func (a *Assist) CompareToInstance(actual interface{}, table *godog.Table) error {
 	tableMap, err := a.ParseMap(table)
 	if err != nil {
 		return err
@@ -195,7 +196,7 @@ func (a *Assist) CompareToInstance(actual interface{}, table *gherkin.DataTable)
 }
 
 // CompareToSlice compares an actual slice of values to the expected rows from a Gherkin table.
-func (a *Assist) CompareToSlice(actual interface{}, table *gherkin.DataTable) error {
+func (a *Assist) CompareToSlice(actual interface{}, table *godog.Table) error {
 	maps, err := a.ParseSlice(table)
 	if err != nil {
 		return err
