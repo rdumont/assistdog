@@ -9,18 +9,20 @@ import (
 
 	"github.com/cucumber/godog"
 
-	"github.com/rdumont/assistdog/defaults"
+	"github.com/ONSdigital/dp-assistdog/defaults"
 )
 
 var defaultParsers = map[interface{}]ParseFunc{
 	"":          defaults.ParseString,
 	0:           defaults.ParseInt,
+	int32(0):    defaults.ParseInt32,
 	time.Time{}: defaults.ParseTime,
 }
 
 var defaultComparers = map[interface{}]CompareFunc{
 	"":          defaults.CompareString,
 	0:           defaults.CompareInt,
+	int32(0):    defaults.CompareInt32,
 	time.Time{}: defaults.CompareTime,
 }
 

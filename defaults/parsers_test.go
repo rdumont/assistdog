@@ -30,14 +30,35 @@ func TestParseInt(t *testing.T) {
 	})
 }
 
+func TestParseInt32(t *testing.T) {
+	t.Run("parses valid int32", func(t *testing.T) {
+		res, err := ParseInt32("123")
+
+		require.NoError(t, err)
+		require.Equal(t, int32(123), res)
+	})
+
+	t.Run("returns error for invalid integer", func(t *testing.T) {
+		_, err := ParseInt32("abc")
+
+		require.EqualError(t, err, `strconv.ParseInt: parsing "abc": invalid syntax`)
+	})
+
+	t.Run("returns error for int32 overflow", func(t *testing.T) {
+		_, err := ParseInt32("2147483648")
+
+		require.EqualError(t, err, `strconv.ParseInt: parsing "2147483648": value out of range`)
+	})
+}
+
 func TestParseTime(t *testing.T) {
 	t.Run("parses supported layouts", func(t *testing.T) {
 		expected, err := time.Parse(time.RFC3339Nano, "2020-11-05T16:01:54.0123Z")
 		require.NoError(t, err)
 
 		cases := []struct {
-			layout string
-			raw string
+			layout    string
+			raw       string
 			tolerance time.Duration
 		}{
 			{layout: time.RFC822, raw: "05 Nov 20 16:01 MST", tolerance: time.Minute},

@@ -20,6 +20,14 @@ func ParseInt(raw string) (interface{}, error) {
 	return strconv.Atoi(raw)
 }
 
+func ParseInt32(raw string) (interface{}, error) {
+	i, err := strconv.ParseInt(raw, 10, 32)
+	if err != nil {
+		return nil, err
+	}
+	return int32(i), nil
+}
+
 func ParseTime(raw string) (interface{}, error) {
 	var fieldTime time.Time
 	var err error

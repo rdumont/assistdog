@@ -8,7 +8,7 @@ import (
 	"github.com/cucumber/messages-go/v10"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/rdumont/assistdog/defaults"
+	"github.com/ONSdigital/dp-assistdog/defaults"
 )
 
 type person struct {

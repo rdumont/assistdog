@@ -6,7 +6,7 @@ import (
 	"github.com/cucumber/godog"
 	"github.com/cucumber/messages-go/v10"
 
-	"github.com/rdumont/assistdog"
+	assistdog "github.com/ONSdigital/dp-assistdog"
 )
 
 func ExampleAssist_CreateInstance() {

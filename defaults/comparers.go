@@ -37,6 +37,25 @@ func CompareInt(raw string, actual interface{}) error {
 	return nil
 }
 
+func CompareInt32(raw string, actual interface{}) error {
+	ai, ok := actual.(int32)
+	if !ok {
+		return fmt.Errorf("%v is not an int32", actual)
+	}
+
+	i, err := strconv.ParseInt(raw, 10, 32)
+	if err != nil {
+		return err
+	}
+	ei := int32(i)
+
+	if ei != ai {
+		return fmt.Errorf("expected %v, but got %v", ei, ai)
+	}
+
+	return nil
+}
+
 func CompareTime(raw string, actual interface{}) error {
 	at, ok := actual.(time.Time)
 	if !ok {

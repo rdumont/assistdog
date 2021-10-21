@@ -47,6 +47,26 @@ func TestCompareInt(t *testing.T) {
 	})
 }
 
+func TestCompareInt32(t *testing.T) {
+	t.Run("returns nil for equal int32 values", func(t *testing.T) {
+		err := CompareInt32("123", int32(123))
+
+		require.NoError(t, err)
+	})
+
+	t.Run("returns error for actual that isn't an int32", func(t *testing.T) {
+		err := CompareInt32("123", 123)
+
+		require.EqualError(t, err, "123 is not an int32")
+	})
+
+	t.Run("returns error for different int32 values", func(t *testing.T) {
+		err := CompareInt32("123", int32(456))
+
+		require.EqualError(t, err, "expected 123, but got 456")
+	})
+}
+
 func TestCompareTime(t *testing.T) {
 	validTime, err := time.Parse(time.RFC3339, "2020-11-05T16:01:54Z")
 	require.NoError(t, err)
@@ -64,7 +84,7 @@ func TestCompareTime(t *testing.T) {
 	})
 
 	t.Run("returns error for different times", func(t *testing.T) {
-		differentTime := validTime.Add(1*time.Hour)
+		differentTime := validTime.Add(1 * time.Hour)
 		require.NoError(t, err)
 
 		err = CompareTime("2020-11-05T16:01:54Z", differentTime)
