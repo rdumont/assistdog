@@ -3,7 +3,7 @@ module github.com/rdumont/assistdog
 go 1.13
 
 require (
-	github.com/cucumber/godog v0.10.0
-	github.com/cucumber/messages-go/v10 v10.0.3
-	github.com/stretchr/testify v1.6.1
+	github.com/cucumber/godog v0.12.5
+	github.com/cucumber/messages-go/v16 v16.0.1
+	github.com/stretchr/testify v1.7.0
 )

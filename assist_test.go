@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/cucumber/godog"
-	"github.com/cucumber/messages-go/v10"
+	"github.com/cucumber/messages-go/v16"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/rdumont/assistdog/defaults"
@@ -241,14 +241,14 @@ row 1:
 }
 
 func buildTable(src [][]string) *godog.Table {
-	rows := make([]*messages.PickleStepArgument_PickleTable_PickleTableRow, len(src))
+	rows := make([]*messages.PickleTableRow, len(src))
 	for i, row := range src {
-		cells := make([]*messages.PickleStepArgument_PickleTable_PickleTableRow_PickleTableCell, len(row))
+		cells := make([]*messages.PickleTableCell, len(row))
 		for j, value := range row {
-			cells[j] = &messages.PickleStepArgument_PickleTable_PickleTableRow_PickleTableCell{Value: value}
+			cells[j] = &messages.PickleTableCell{Value: value}
 		}
 
-		rows[i] = &messages.PickleStepArgument_PickleTable_PickleTableRow{Cells: cells}
+		rows[i] = &messages.PickleTableRow{Cells: cells}
 	}
 
 	return &godog.Table{Rows: rows}
