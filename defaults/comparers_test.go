@@ -64,7 +64,7 @@ func TestCompareTime(t *testing.T) {
 	})
 
 	t.Run("returns error for different times", func(t *testing.T) {
-		differentTime := validTime.Add(1*time.Hour)
+		differentTime := validTime.Add(1 * time.Hour)
 		require.NoError(t, err)
 
 		err = CompareTime("2020-11-05T16:01:54Z", differentTime)

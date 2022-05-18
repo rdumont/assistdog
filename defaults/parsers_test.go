@@ -36,8 +36,8 @@ func TestParseTime(t *testing.T) {
 		require.NoError(t, err)
 
 		cases := []struct {
-			layout string
-			raw string
+			layout    string
+			raw       string
 			tolerance time.Duration
 		}{
 			{layout: time.RFC822, raw: "05 Nov 20 16:01 MST", tolerance: time.Minute},
